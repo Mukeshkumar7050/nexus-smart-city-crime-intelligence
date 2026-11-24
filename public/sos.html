@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS — Citizen SOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nexus.css">
+<style>
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
+.box{width:440px;max-width:100%;background:rgba(6,14,28,.97);border:1px solid rgba(255,45,85,.35);padding:30px;text-align:center;border-top:2px solid var(--red)}
+#sosBtn{width:190px;height:190px;border-radius:50%;border:6px solid #ff7a93;background:radial-gradient(circle at 35% 30%,#ff5a78,#c40f33);color:#fff;font-family:Rajdhani,sans-serif;font-size:56px;font-weight:700;letter-spacing:4px;cursor:pointer;margin:22px 0;animation:pl 1.6s infinite}
+#sosBtn:disabled{filter:grayscale(.8);animation:none;cursor:default}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(255,45,85,.6)}100%{box-shadow:0 0 0 36px rgba(255,45,85,0)}}
+.box input,.box select{width:100%;margin-top:10px}
+#res{margin-top:18px;font-size:14px;line-height:1.6}.ok{color:var(--green)}.bad{color:var(--red)}
+.note{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-top:16px}
+a{color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:11px}
+</style></head>
+<body><div class="wrap"><div class="box">
+  <div class="logo" style="justify-content:center"><i></i><div style="text-align:left"><b>NEXUS</b><small>CITIZEN EMERGENCY SOS</small></div></div>
+  <button id="sosBtn" onclick="sendSOS()">SOS</button>
+  <div class="mono" id="loc" style="font-size:11px;color:var(--dim)">📍 Detecting your location…</div>
+  <select id="zone"><option value="">Auto — use my GPS location</option></select>
+  <input id="phone" placeholder="Phone number (optional)" maxlength="20">
+  <input id="msg" placeholder="What is happening? (optional)" maxlength="150">
+  <div id="res"></div>
+  <div class="note">No login needed. DEMO PROJECT — in a real emergency call 112.</div>
+  <p style="margin-top:14px"><a href="index.html">← Operator login</a></p>
+</div></div>
+<script>
+const ZONES=['Gandhipuram','RS Puram','Peelamedu','Town Hall','Saibaba Colony'];
+const $=id=>document.getElementById(id);let pos=null;
+ZONES.forEach(z=>{const o=document.createElement('option');o.textContent=z;$('zone').appendChild(o)});
+if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{pos=p.coords;$('loc').textContent='📍 Location found ('+pos.latitude.toFixed(4)+', '+pos.longitude.toFixed(4)+')'},
+  ()=>{$('loc').textContent='📍 Location unavailable — choose your area below'},{timeout:8000});
+else $('loc').textContent='📍 GPS not supported — choose your area below';
+async function sendSOS(){
+  if(!confirm('Send an emergency SOS now?'))return;
+  const b=$('sosBtn'),r=$('res');b.disabled=true;r.className='';r.textContent='Sending…';
+  const body={zone:$('zone').value,phone:$('phone').value,message:$('msg').value};
+  if(pos&&!$('zone').value){body.lat=String(pos.latitude);body.lng=String(pos.longitude)}
+  try{
+    const res=await fetch('/api/sos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await res.json();
+    if(!res.ok)throw new Error(d.error||'Failed');
+    r.className='ok';
+    r.textContent=d.unit?`✅ SOS received (ref NEX-${d.id}, ${d.zone}). Patrol unit ${d.unit} is on the way — about ${Math.max(1,Math.round(d.distanceKm/30*60))} min away.`
+                        :`✅ SOS received (ref NEX-${d.id}, ${d.zone}). All units are busy — an operator has been alerted.`;
+  }catch(e){r.className='bad';r.textContent='⚠ '+e.message;b.disabled=false}
+}
+</script></body></html>

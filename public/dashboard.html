@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nexus.css">
+<style>
+.top{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--border);background:rgba(4,10,20,.97);position:sticky;top:0;z-index:5}
+.top .r{display:flex;gap:16px;align-items:center;font-family:'Share Tech Mono',monospace;font-size:11px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:bl 1.5s infinite}@keyframes bl{50%{opacity:.2}}
+.lay{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 62px);position:relative}
+.side{background:rgba(8,18,34,.9);border-right:1px solid var(--border);padding:16px 10px}
+.mi{padding:12px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;border-left:2px solid transparent;margin-bottom:4px}
+.mi:hover,.mi.on{background:rgba(0,212,255,.08);border-left-color:var(--accent);color:var(--bright)}
+.main{padding:20px;position:relative}.pg{display:none}.pg.on{display:block}
+h1{font-family:Rajdhani,sans-serif;font-size:28px;color:var(--bright)}h1 span{color:var(--accent)}
+.sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin:4px 0 16px}
+.card{background:rgba(8,18,34,.9);border:1px solid var(--border);padding:18px;margin-bottom:16px}
+.ct{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent);margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{border:1px solid var(--border);background:rgba(255,255,255,.03);padding:14px}
+.kpi b{font-family:Rajdhani,sans-serif;font-size:32px;color:var(--bright);display:block}
+.kpi span{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.row{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-family:'Share Tech Mono',monospace;font-size:10px}
+.row .n{width:110px;color:var(--dim)}.row .t{flex:1;height:7px;background:var(--border)}.row .f{height:100%;transition:width .6s}.row .v{width:60px;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);text-align:left;padding:10px;border-bottom:1px solid var(--border)}
+td{padding:10px;border-bottom:1px solid rgba(26,48,72,.5)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.bar input{flex:1;min-width:140px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#000;padding:12px 18px;font-family:Rajdhani,sans-serif;font-weight:700;display:none;z-index:50}
+.cv{width:100%;height:auto;display:block;border:1px solid var(--border)}
+@media(max-width:900px){.lay{grid-template-columns:1fr}.side{display:flex;overflow-x:auto}.kpis,.two{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.kpis,.two{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="top"><div class="logo"><i></i><div><b>NEXUS</b><small>SMART CITY CRIME INTELLIGENCE</small></div></div>
+ <div class="r"><span><span class="dot"></span> LIVE</span><span id="who">ADMIN</span><span id="clk"></span><button class="btn red sm" onclick="logout()">LOGOUT ⏻</button></div></div>
+<div class="lay">
+ <div class="side">
+  <div class="mi on" data-p="ov">◆ DASHBOARD</div><div class="mi" data-p="inc">▣ INCIDENTS</div>
+  <div class="mi" data-p="pred">▲ PREDICTIVE ANALYSIS</div><div class="mi" data-p="pat">◉ PATROL UNITS</div><div class="mi" id="audTab" data-p="aud" style="display:none">▤ AUDIT LOG</div>
+ </div>
+ <div class="main">
+  <div class="pg on" id="ov">
+   <h1>Welcome back, <span id="wn">Admin</span></h1><div class="sub">COIMBATORE METRO GRID • DATA FROM SQL DATABASE • LAST SYNC <span id="sync">—</span></div>
+   <div class="kpis">
+    <div class="kpi"><b id="k1">–</b><span>TOTAL INCIDENTS</span></div>
+    <div class="kpi"><b id="k2" style="color:var(--red)">–</b><span>ACTIVE / OPEN</span></div>
+    <div class="kpi"><b id="k3" style="color:var(--yellow)">–</b><span>LAST 24 HOURS</span></div>
+    <div class="kpi"><b id="k4" style="color:var(--green)">–</b><span>PATROL UNITS</span></div>
+   </div>
+   <div class="two"><div class="card"><div class="ct">INCIDENTS BY TYPE</div><div id="byType"></div></div>
+   <div class="card"><div class="ct">INCIDENTS BY ZONE</div><div id="byZone"></div></div></div>
+   <div class="two"><div class="card"><div class="ct">LIVE CRIME MAP — COIMBATORE (HEAT = OPEN INCIDENTS)</div><canvas id="map" class="cv" width="640" height="400"></canvas></div>
+    <div><div class="card"><div class="ct">24H TREND + 6H FORECAST</div><canvas id="trend" class="cv" width="640" height="220"></canvas></div>
+    <div class="card"><div class="ct">LIVE ALERT FEED</div><div id="feed"><span class="sub">Waiting for live events…</span></div></div></div></div>
+  </div>
+  <div class="pg" id="inc">
+   <h1>Incident <span>Reports</span></h1><div class="sub">SEARCH • FILTER • ADD • RESOLVE • EXPORT</div>
+   <div class="card" id="newCard"><div class="ct">+ NEW INCIDENT</div><div class="bar">
+    <select id="nt"><option>Theft</option><option>Assault</option><option>Burglary</option><option>Vandalism</option></select>
+    <input id="nl" placeholder="Location (e.g. Bus Stand)"><select id="nz"></select>
+    <input id="nd" placeholder="Description (optional)"><button class="btn green" onclick="addInc()">SUBMIT</button></div></div>
+   <div class="bar"><input id="sq" placeholder="Search by location or zone..." oninput="loadInc()">
+    <select id="st" onchange="loadInc()"><option value="">All Types</option><option>SOS</option><option>Theft</option><option>Assault</option><option>Burglary</option><option>Vandalism</option></select>
+    <button class="btn green" onclick="exportCSV()">⬇ EXPORT CSV</button></div>
+   <div class="card" style="overflow-x:auto"><table><thead><tr><th>ID</th><th>TYPE</th><th>LOCATION</th><th>ZONE</th><th>TIME</th><th>STATUS</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+  </div>
+  <div class="pg" id="pred">
+   <h1>Predictive <span>Analysis</span></h1><div class="sub">RISK = ACTIVE INCIDENTS × 5 + LAST-24H INCIDENTS × 3 (CAPPED AT 100), COMPUTED IN SQL</div>
+   <div class="card"><div class="ct">ZONE RISK RANKING</div><div id="risk"></div></div>
+   <div class="card"><div class="ct">RECOMMENDATIONS</div><div id="rec"></div></div>
+  </div>
+  <div class="pg" id="aud"><h1>Audit <span>Log</span></h1><div class="sub">LAST 100 SECURITY AND OPERATIONS EVENTS (ADMIN ONLY)</div>
+   <div class="card" style="overflow-x:auto"><table><thead><tr><th>TIME</th><th>USER</th><th>ACTION</th><th>DETAIL</th></tr></thead><tbody id="at"></tbody></table></div></div>
+  <div class="pg" id="pat">
+   <h1>Patrol <span>Units</span></h1><div class="sub">DISPATCH UNITS TO ANY ZONE</div>
+   <div class="card" style="overflow-x:auto"><table><thead><tr><th>UNIT</th><th>OFFICER</th><th>ZONE</th><th>STATUS</th><th>DISPATCH TO</th></tr></thead><tbody id="ut"></tbody></table></div>
+   <div class="card" id="routeCard" style="display:none"><div class="ct">SMART PATROL ROUTE — NEAREST-NEIGHBOUR (SHOWN ON THE LIVE MAP TOO)</div><div id="routeBody"></div></div>
+  </div>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const T=sessionStorage.getItem('t'); if(!T) location='index.html';
+const ROLE=sessionStorage.getItem('r')||'VIEWER';
+addEventListener('unhandledrejection',e=>{if(e.reason&&e.reason.message)alert(e.reason.message)});
+const ZONES=['Gandhipuram','RS Puram','Peelamedu','Town Hall','Saibaba Colony'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const COL={SOS:'var(--red)',Theft:'var(--red)',Assault:'var(--orange)',Burglary:'var(--yellow)',Vandalism:'var(--accent)'};
+async function api(p,o={}){
+  const r=await fetch('/api'+p,{...o,headers:{'Content-Type':'application/json','X-Auth-Token':T}});
+  if(r.status===401){sessionStorage.clear();location='index.html';throw 0}
+  const d=await r.json(); if(!r.ok) throw new Error(d.error||'Request failed'); return d;
+}
+function toast(m){const t=$('toast');t.textContent='✓ '+m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
+function logout(){if(confirm('Log out?')){api('/logout',{method:'POST',body:'{}'}).catch(()=>{}).finally(()=>{sessionStorage.clear();location='index.html'})}}
+$('who').textContent=(sessionStorage.getItem('u')||'admin').toUpperCase()+' • '+ROLE;if(ROLE==='VIEWER')$('newCard').style.display='none';if(ROLE==='SUPER_ADMIN')$('audTab').style.display='block'; $('wn').textContent=sessionStorage.getItem('u')||'Admin';
+setInterval(()=>$('clk').textContent=new Date().toTimeString().slice(0,8),1000);
+document.querySelectorAll('.mi').forEach(m=>m.onclick=()=>{
+  document.querySelectorAll('.mi').forEach(x=>x.classList.remove('on'));m.classList.add('on');
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));$(m.dataset.p).classList.add('on');refresh();});
+$('nz').innerHTML=ZONES.map(z=>`<option>${z}</option>`).join('');
+const bars=(rows,key,col)=>{const max=Math.max(1,...rows.map(r=>r.c));
+  return rows.map(r=>`<div class="row"><span class="n">${esc(r[key])}</span><div class="t"><div class="f" style="width:${r.c/max*100}%;background:${col(r)}"></div></div><span class="v">${r.c}</span></div>`).join('')};
+async function loadStats(){
+  const s=await api('/stats'); $('k1').textContent=s.total.toLocaleString();$('k2').textContent=s.active;$('k3').textContent=s.last24h;$('k4').textContent=s.unitsOnline;
+  $('byType').innerHTML=bars(s.byType,'type',r=>COL[r.type]||'var(--accent)');
+  $('byZone').innerHTML=bars(s.byZone,'zone',()=>'var(--accent2)'); $('sync').textContent=new Date().toTimeString().slice(0,8);
+}
+let rows=[];
+async function loadInc(){
+  rows=await api('/incidents?q='+encodeURIComponent($('sq').value)+'&type='+encodeURIComponent($('st').value));
+  $('tb').innerHTML=rows.map(r=>`<tr><td>NEX-${r.id}</td><td><span class="pill ${r.type==='Theft'||r.type==='SOS'?'red':r.type==='Assault'?'orange':r.type==='Burglary'?'yellow':''}">${esc(r.type)}</span></td>
+   <td>${esc(r.location)}</td><td>${esc(r.zone)}</td><td>${new Date(r.created_at).toLocaleString()}</td>
+   <td><span class="pill ${r.status==='Resolved'?'green':r.status==='Active'?'red':'orange'}">${esc(r.status)}</span></td>
+   <td>${r.status!=='Resolved'&&ROLE!=='VIEWER'?`<button class="btn sm" onclick="autoDispatch(${r.id})">AUTO-DISPATCH</button> <button class="btn sm green" onclick="resolve(${r.id})">RESOLVE</button>`:''}</td></tr>`).join('');
+}
+async function addInc(){
+  try{await api('/incidents',{method:'POST',body:JSON.stringify({type:$('nt').value,location:$('nl').value,zone:$('nz').value,description:$('nd').value})});
+   $('nl').value='';$('nd').value='';toast('Incident saved to database');loadInc();loadStats();}catch(e){alert(e.message)}
+}
+async function resolve(id){await api(`/incidents/${id}/status`,{method:'PUT',body:JSON.stringify({status:'Resolved'})});toast('Incident resolved');loadInc();loadStats()}
+function exportCSV(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const csv='ID,Type,Location,Zone,Time,Status\n'+rows.map(r=>[ 'NEX-'+r.id,r.type,r.location,r.zone,r.created_at,r.status].map(q).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='nexus_incidents.csv';a.click();toast('CSV exported');
+}
+async function loadPred(){
+  const p=await api('/predictions'); const col=l=>l==='HIGH'?'var(--red)':l==='MEDIUM'?'var(--orange)':'var(--green)';
+  $('risk').innerHTML=p.map(z=>`<div class="row"><span class="n">${esc(z.zone)}</span><div class="t"><div class="f" style="width:${z.risk}%;background:${col(z.level)}"></div></div><span class="v">${z.risk}/100</span></div>`).join('');
+  $('rec').innerHTML=p.map(z=>`<p style="margin-bottom:10px;font-size:13px"><span class="pill ${z.level==='HIGH'?'red':z.level==='MEDIUM'?'orange':'green'}">${z.level}</span> &nbsp;<b>${esc(z.zone)}</b> — deploy ${z.unitsNeeded} unit(s). ${z.active} open incidents, ${z.recent} in the last 24h.${z.peakHour!=null?' Peak hour: '+z.peakHour+':00.':''}</p>`).join('');
+}
+async function loadUnits(){
+  const u=await api('/units');
+  $('ut').innerHTML=u.map(x=>`<tr><td><b>${esc(x.code)}</b></td><td>${esc(x.officer)}</td><td>${esc(x.zone)}</td>
+   <td><span class="pill ${x.status==='RESPONDING'?'red':x.status==='ON DUTY'?'green':'orange'}">${esc(x.status)}</span></td>
+   <td><select id="dz${x.id}">${ZONES.map(z=>`<option ${z===x.zone?'selected':''}>${z}</option>`).join('')}</select> <button class="btn sm" onclick="dispatch(${x.id})">DISPATCH</button>${ROLE!=='VIEWER'?` <button class="btn sm green" onclick="smartRoute(${x.id})">SMART ROUTE (3)</button>`:''}</td></tr>`).join('');
+}
+async function dispatch(id){const zone=$('dz'+id).value;await api(`/units/${id}/dispatch`,{method:'POST',body:JSON.stringify({zone})});toast('Unit dispatched to '+zone);loadUnits()}
+function refresh(){const on=document.querySelector('.pg.on').id;
+  if(on==='ov'){loadStats();loadMap();loadTrend()}else if(on==='inc')loadInc();else if(on==='pred')loadPred();else if(on==='aud')loadAudit();else loadUnits();}
+const CEN={'Gandhipuram':[11.0183,76.9725],'RS Puram':[11.0089,76.9500],'Peelamedu':[11.0243,77.0044],'Town Hall':[10.9925,76.9614],'Saibaba Colony':[11.0262,76.9437]};
+async function autoDispatch(id){const r=await api(`/incidents/${id}/dispatch`,{method:'POST',body:'{}'});toast(`Unit ${r.unit} dispatched (${r.distanceKm} km away)`);loadInc();loadStats()}
+async function loadAudit(){const a=await api('/audit');$('at').innerHTML=a.map(r=>`<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${esc(r.username)}</td><td><span class="pill">${esc(r.action)}</span></td><td>${esc(r.detail)}</td></tr>`).join('')}
+async function loadMap(){
+  const [inc,units,pred]=await Promise.all([api('/incidents'),api('/units'),api('/predictions')]);
+  const c=$('map'),g=c.getContext('2d'),W=c.width,H=c.height,V=Object.values(CEN);
+  const la0=Math.min(...V.map(v=>v[0]))-.012,la1=Math.max(...V.map(v=>v[0]))+.012,ln0=Math.min(...V.map(v=>v[1]))-.015,ln1=Math.max(...V.map(v=>v[1]))+.015;
+  const P=(la,ln)=>[(ln-ln0)/(ln1-ln0)*W,(1-(la-la0)/(la1-la0))*H];
+  g.fillStyle='#071422';g.fillRect(0,0,W,H);g.strokeStyle='rgba(0,212,255,.08)';
+  for(let x=0;x<W;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let y=0;y<H;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  g.globalCompositeOperation='lighter';
+  inc.filter(i=>i.status!=='Resolved'&&i.lat!=null).forEach(i=>{const[x,y]=P(i.lat,i.lng),gr=g.createRadialGradient(x,y,0,x,y,34);gr.addColorStop(0,'rgba(255,45,85,.35)');gr.addColorStop(1,'rgba(255,45,85,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,34,0,7);g.fill()});
+  g.globalCompositeOperation='source-over';g.font='11px monospace';
+  pred.forEach(z=>{const[x,y]=P(...CEN[z.zone]);g.fillStyle=z.level==='HIGH'?'#ff2d55':z.level==='MEDIUM'?'#ff8c00':'#00ff88';g.fillText(z.zone+' '+z.risk,x-34,y+4)});
+  g.font='9px monospace';
+  units.forEach(u=>{if(u.lat==null)return;const[x,y]=P(u.lat,u.lng);g.fillStyle=u.status==='RESPONDING'?'#ff2d55':'#00d4ff';g.beginPath();g.moveTo(x,y-7);g.lineTo(x+6,y+5);g.lineTo(x-6,y+5);g.fill();g.fillStyle='#e8f4ff';g.fillText(u.code,x+8,y+4)});
+  if(ROUTE){const pts=[[ROUTE.startLat,ROUTE.startLng],...ROUTE.stops.map(s=>[s.lat,s.lng]),[ROUTE.startLat,ROUTE.startLng]].map(p=>P(p[0],p[1]));
+    g.setLineDash([6,4]);g.strokeStyle='#00ff88';g.lineWidth=2;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();g.setLineDash([]);
+    ROUTE.stops.forEach((s,i)=>{const[x,y]=P(s.lat,s.lng);g.fillStyle='#00ff88';g.beginPath();g.arc(x,y,9,0,7);g.fill();g.fillStyle='#000';g.font='bold 11px monospace';g.fillText(i+1,x-3,y+4)})}
+}
+async function loadTrend(){
+  const d=await api('/trend'),c=$('trend'),g=c.getContext('2d'),W=c.width,H=c.height,all=[...d.hourly,...d.forecast];
+  const max=Math.max(1,...all)*1.2,st=(W-40)/(all.length-1),X=i=>20+i*st,Y=v=>H-24-v/max*(H-44);
+  g.clearRect(0,0,W,H);
+  const line=(arr,off,col,dash)=>{g.beginPath();g.setLineDash(dash);g.strokeStyle=col;g.lineWidth=2;arr.forEach((v,i)=>i?g.lineTo(X(i+off),Y(v)):g.moveTo(X(off),Y(v)));g.stroke()};
+  line(d.hourly,0,'#00d4ff',[]);line([d.hourly[23],...d.forecast],23,'#ffd600',[6,4]);g.setLineDash([]);
+  g.fillStyle='#5d7a90';g.font='10px monospace';g.fillText('-24h',20,H-6);g.fillText('now',X(23)-10,H-6);g.fillText('forecast +6h',X(25),H-6);
+}
+let ROUTE=null;
+async function smartRoute(id){
+  const r=await api(`/units/${id}/route`,{method:'POST',body:'{}'});ROUTE=r;$('routeCard').style.display='block';
+  $('routeBody').innerHTML=`<p style="font-size:13px;margin-bottom:10px">Unit <b>${esc(r.unit)}</b> covers <b>${r.stops.length}</b> incidents in one trip: <b>${r.routeKm} km</b> round trip instead of <b>${r.separateKm} km</b> as separate trips — saves <b style="color:var(--green)">${r.savedPct}%</b> distance.</p>`
+   +r.stops.map((s,i)=>`<div class="row"><span class="n">STOP ${i+1}</span><span style="flex:1">${esc(s.type)} — ${esc(s.location)} (${esc(s.zone)})</span><span class="v">+${s.legKm} km</span></div>`).join('');
+  toast(`Unit ${r.unit} route planned: ${r.stops.length} stops`);loadUnits();loadStats();
+}
+const feed=[];
+function onEvent(e){
+  if(e.event==='incident'){
+    feed.unshift(`<div style="padding:8px;border-left:2px solid var(--red);margin-bottom:6px;font-size:12px"><b class="mono" style="font-size:9px;color:var(--red)">${e.sos?'🆘 CITIZEN SOS':(e.simulated?'SIMULATED ':'')+'NEW '+esc(e.type).toUpperCase()}</b><br>${esc(e.location)} — ${esc(e.zone)}</div>`);
+    feed.length=Math.min(feed.length,6);$('feed').innerHTML=feed.join('');toast(e.sos?'🆘 SOS ALERT in '+e.zone+'!':'New '+e.type+' in '+e.zone);if(e.sos){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.start();setTimeout(()=>o.stop(),400)}catch(_){}}refresh();
+  }else if(e.event==='dispatch'){toast('Unit '+e.unit+' dispatched to '+e.zone);refresh()}
+}
+async function stream(){            // live updates over Server-Sent Events (fetch keeps the token in a header)
+  try{const r=await fetch('/api/stream',{headers:{'X-Auth-Token':T}});const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+    for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
+      while((i=buf.indexOf('\n\n'))>=0){const ev=buf.slice(0,i);buf=buf.slice(i+2);const l=ev.split('\n').find(z=>z.startsWith('data: '));if(l)onEvent(JSON.parse(l.slice(6)))}}
+  }catch(e){}
+  setTimeout(stream,3000);
+}
+refresh(); setInterval(refresh,15000); stream();
+</script></body></html>

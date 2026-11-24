@@ -1,0 +1,17 @@
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#050d18;--border:#1a3048;--accent:#00d4ff;--accent2:#0077cc;--green:#00ff88;--red:#ff2d55;--orange:#ff8c00;--yellow:#ffd600;--text:#b8cce0;--dim:#5d7a90;--bright:#e8f4ff}
+body{background:radial-gradient(circle at 50% 40%,#0a1a30,#030810);color:var(--text);font-family:'Exo 2',system-ui,sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,212,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.05) 1px,transparent 1px);background-size:60px 60px}
+.mono{font-family:'Share Tech Mono',monospace}
+.logo{display:flex;align-items:center;gap:12px}
+.logo i{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)}
+.logo b{font-family:Rajdhani,sans-serif;font-size:26px;letter-spacing:5px;color:var(--bright);display:block;line-height:1}
+.logo small{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px}
+input,select,textarea{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--bright);padding:10px 12px;outline:none;font-size:13px}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:#081224}
+.btn{padding:10px 16px;border:none;cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:2px;font-size:13px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#000}
+.btn.green{background:var(--green)}.btn.red{background:transparent;border:1px solid var(--red);color:var(--red)}.btn.sm{padding:5px 10px;font-size:11px}
+.btn:hover{filter:brightness(1.15)}
+.pill{font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 8px;border-radius:10px;background:rgba(0,212,255,.15);color:var(--accent)}
+.pill.red{background:rgba(255,45,85,.15);color:var(--red)}.pill.orange{background:rgba(255,140,0,.15);color:var(--orange)}.pill.green{background:rgba(0,255,136,.15);color:var(--green)}.pill.yellow{background:rgba(255,214,0,.15);color:var(--yellow)}

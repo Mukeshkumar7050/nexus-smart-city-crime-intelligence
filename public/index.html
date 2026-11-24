@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS — Smart City Crime Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nexus.css">
+<style>
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
+.box{width:420px;max-width:100%;background:rgba(6,14,28,.97);border:1px solid rgba(0,180,220,.25);padding:36px 38px;box-shadow:0 0 60px rgba(0,100,180,.15);border-top:2px solid var(--accent)}
+.box h4{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;margin:26px 0 18px}
+label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:2px;display:block;margin:14px 0 6px}
+.box input{width:100%}.box .btn{width:100%;margin-top:22px;padding:13px}
+#err{color:var(--red);font-family:'Share Tech Mono',monospace;font-size:10px;margin-top:10px;display:none}
+.sec{margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)}
+.sec::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:8px}
+</style></head>
+<body><div class="wrap"><div class="box">
+  <div class="logo"><i></i><div><b>NEXUS</b><small>SMART CITY CRIME INTELLIGENCE PLATFORM</small></div></div>
+  <h4>▶ OPERATOR AUTHENTICATION REQUIRED</h4>
+  <label>OPERATOR ID</label><input id="u" autocomplete="username" placeholder="Enter operator ID">
+  <label>ACCESS KEY</label><input id="p" type="password" autocomplete="current-password" placeholder="Enter access key" onkeydown="if(event.key==='Enter')login()">
+  <div id="err">⚠ Invalid credentials. Access denied.</div>
+  <button class="btn" id="b" onclick="login()">INITIATE ACCESS</button>
+  <div class="sec">SERVER-SIDE AUTH • PBKDF2 HASHED CREDENTIALS</div>
+  <a href="sos.html" class="btn" style="display:block;text-align:center;text-decoration:none;background:var(--red);color:#fff">🆘 CITIZEN SOS — NO LOGIN NEEDED</a>
+</div></div>
+<script>
+if(sessionStorage.getItem('t')) location='dashboard.html';
+async function login(){
+  const b=document.getElementById('b'),e=document.getElementById('err');
+  e.style.display='none'; b.textContent='AUTHENTICATING...'; b.disabled=true;
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u.value.trim(),password:p.value})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw j.error||0}
+    const d=await r.json(); sessionStorage.setItem('t',d.token); sessionStorage.setItem('u',d.user);sessionStorage.setItem('r',d.role);
+    location='dashboard.html';
+  }catch(x){ e.textContent='⚠ '+(x||'Invalid credentials. Access denied.'); e.style.display='block'; b.textContent='INITIATE ACCESS'; b.disabled=false; }
+}
+</script></body></html>
